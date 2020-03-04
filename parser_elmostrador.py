@@ -21,13 +21,18 @@ def unique(list_x):
 def parser_elmostrador(raw_list, on_going=True, input_date=datetime.today().strftime('%Y-%m-%d')):
     """Parses elmostrador raw list of html link tags
 
-    :param raw_list:
-    :param on_going:
-    :param input_date:
-    :return: final
+    :param raw_list: list of a ref tags from BeautifulSoup
+    :param on_going: boolean, whether the
+    :param input_date: string date in %Y-%m-%d to find a stored json file
+    :return: final pandas DataFrame with 4 columns
+        - raw_html_out string (url)
+        - section string
+        - news_date Date
+        - headline text
+        - scrap_date Date
     """
     # Hard-coded patterns
-    el_mostrador_comentarios_pattern = "#comentarios"
+    pat_comments_hashtag = "#comentarios"
     url_base = 'https://www.elmostrador.cl'
 
     # Open stored file (default: today's file) or continue working in memory
@@ -35,11 +40,10 @@ def parser_elmostrador(raw_list, on_going=True, input_date=datetime.today().strf
         with open('output/{0}_elmostrador.json'.format(input_date)) as json_file:
             raw_list = json.load(json_file)
 
-    out_list = [f for f in raw_list if el_mostrador_comentarios_pattern not in f]
-    out_list = unique(out_list)
+    # filter out '#comentarios'
+    out_list = [f for f in raw_list if pat_comments_hashtag not in f]
 
-    # filter out 'comentarios'
-    out_list = [f for f in out_list if el_mostrador_comentarios_pattern not in f]
+    # Take only unique values
     out_list = unique(out_list)
 
     # filter out for each main group
