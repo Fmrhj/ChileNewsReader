@@ -6,7 +6,8 @@ from functools import reduce
 from datetime import datetime
 import re
 import math
-
+import requests
+from bs4 import BeautifulSoup
 
 def unique(list_x):
     """Gets unique items from a list
@@ -16,6 +17,42 @@ def unique(list_x):
     """
     x = np.array(list_x)
     return np.unique(x)
+
+
+def parser_elmostrador_each_article(url):
+    """ parses each url link
+
+    :param url: string with http url
+    :return: text article
+    """
+    # Get http response
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, features="lxml")
+
+    # Get all p tags
+    p_tags = soup.find_all('p')
+    p_tags_text = [tag.get_text().strip() for tag in p_tags]
+
+    # Filter out sentences that contain newline characters '\n' or don't contain periods, or three dots
+    sentence_list = [sentence for sentence in p_tags_text if '\n' not in sentence]
+    sentence_list = [sentence for sentence in sentence_list if '.' in sentence]
+    sentence_list = [sentence for sentence in sentence_list if '...' not in sentence]
+
+    # Combine list items into string.
+    article = ' '.join(sentence_list)
+
+    # remove weird characters
+    weird_char = '\xa0'
+    article = re.sub(weird_char, ' ', article)
+
+    # replace scaped ''
+    article = re.sub("\''", "''", article)
+
+    # if article is empty, it is a video
+    if len(article.split()) == 0:
+        article = '--VIDEO--'
+
+    return article
 
 
 def parser_elmostrador(raw_list, on_going=True, input_date=datetime.today().strftime('%Y-%m-%d')):

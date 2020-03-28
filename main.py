@@ -4,7 +4,7 @@ import json
 import re
 from datetime import datetime
 import logging
-from parser_elmostrador import parser_elmostrador
+from parser_elmostrador import parser_elmostrador, parser_elmostrador_each_article
 import connect as head_con
 
 '''
@@ -17,7 +17,7 @@ url_list = ['http://www.emol.com',
 url_list = ['https://www.elmostrador.cl']
 
 param_save_json = False
-today_date_str = datetime.today().strftime('%Y-%m-%d')
+today_date_str = datetime.today().strftime('%Y-%m-%d %H:%M')
 
 
 def save_in_json(scrap_out, json_filename):
@@ -80,6 +80,11 @@ def parser_routine(urls):
         # Parse list
         logger.info('Parsing scrapped html file')
         table_to_db = parser_elmostrador(out_list, on_going=True)
+
+        # Generate text of each article
+        logger.info('Parsing each article')
+        table_to_db['article_text'] = table_to_db.apply(lambda x: parser_elmostrador_each_article(x['raw_html_out']),
+                                                        axis=1)
 
         # Save into db
         logger.info('Saving output in db')
